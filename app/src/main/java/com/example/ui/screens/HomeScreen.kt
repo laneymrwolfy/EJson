@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Architecture
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Code
@@ -71,6 +72,7 @@ fun HomeScreen(
     onTemplatesClick: () -> Unit,
     onManifestGeneratorClick: () -> Unit,
     onUuidToolClick: () -> Unit,
+    onStructuresClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onRecentFileClick: (RecentFile) -> Unit,
     onRemoveRecentClick: (String) -> Unit,
@@ -268,6 +270,75 @@ fun HomeScreen(
                             }
                             Text(
                                 text = "Behavior, Resource & World Gen schemas",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = EJsonTextSecondary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bedrock Structures Section Card
+        item {
+            Card(
+                onClick = onStructuresClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("structures_hub_card"),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = EJsonDarkCard),
+                border = androidx.compose.foundation.BorderStroke(1.dp, EJsonDarkBorder)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF2E2600)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Architecture,
+                                contentDescription = null,
+                                tint = EJsonYellow,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Bedrock Structures",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = Color(0xFF2A2000)
+                                ) {
+                                    Text(
+                                        text = "JSON & .mcstructure",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = EJsonYellow,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = "Structure feature rules, placement configs & file inspector",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = EJsonTextSecondary
                             )

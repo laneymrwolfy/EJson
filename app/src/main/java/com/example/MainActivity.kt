@@ -25,7 +25,9 @@ import com.example.model.RecentFile
 import com.example.ui.screens.EditorScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.ManifestGeneratorDialog
+import com.example.ui.screens.NewJsonScreen
 import com.example.ui.screens.SettingsDialog
+import com.example.ui.screens.StructuresScreen
 import com.example.ui.screens.TemplatesScreen
 import com.example.ui.screens.UuidToolDialog
 import com.example.ui.theme.EJsonTheme
@@ -34,8 +36,10 @@ import com.example.util.StorageManager
 
 enum class AppScreen {
     HOME,
+    NEW_JSON,
     EDITOR,
-    TEMPLATES
+    TEMPLATES,
+    STRUCTURES
 }
 
 class MainActivity : ComponentActivity() {
@@ -190,10 +194,7 @@ fun EJsonApp(
                             openDocumentLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
                         },
                         onNewJsonClick = {
-                            currentUri = null
-                            currentFileName = "untitled.json"
-                            currentContent = "{\n  \n}"
-                            currentScreen = AppScreen.EDITOR
+                            currentScreen = AppScreen.NEW_JSON
                         },
                         onTemplatesClick = {
                             currentScreen = AppScreen.TEMPLATES
@@ -203,6 +204,9 @@ fun EJsonApp(
                         },
                         onUuidToolClick = {
                             showUuidTool = true
+                        },
+                        onStructuresClick = {
+                            currentScreen = AppScreen.STRUCTURES
                         },
                         onSettingsClick = {
                             showSettingsDialog = true
@@ -279,6 +283,38 @@ fun EJsonApp(
                     TemplatesScreen(
                         onBack = { currentScreen = AppScreen.HOME },
                         onSelectTemplate = { template ->
+                            currentUri = null
+                            currentFileName = template.defaultFileName
+                            currentContent = template.content
+                            currentScreen = AppScreen.EDITOR
+                        },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+
+                AppScreen.NEW_JSON -> {
+                    NewJsonScreen(
+                        onBack = { currentScreen = AppScreen.HOME },
+                        onOpenEditor = { fileName, content ->
+                            currentUri = null
+                            currentFileName = fileName
+                            currentContent = content
+                            currentScreen = AppScreen.EDITOR
+                        },
+                        onOpenFullTemplates = {
+                            currentScreen = AppScreen.TEMPLATES
+                        },
+                        onOpenStructures = {
+                            currentScreen = AppScreen.STRUCTURES
+                        },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+
+                AppScreen.STRUCTURES -> {
+                    StructuresScreen(
+                        onBack = { currentScreen = AppScreen.HOME },
+                        onOpenTemplateInEditor = { template ->
                             currentUri = null
                             currentFileName = template.defaultFileName
                             currentContent = template.content

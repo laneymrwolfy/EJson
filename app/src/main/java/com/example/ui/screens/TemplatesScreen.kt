@@ -152,7 +152,7 @@ fun TemplatesScreen(
                     )
                 )
 
-                TemplateCategory.values().forEach { cat ->
+                TemplateCategory.entries.forEach { cat ->
                     val count = TemplateLibrary.templates.count { it.category == cat }
                     FilterChip(
                         selected = selectedCategory == cat,

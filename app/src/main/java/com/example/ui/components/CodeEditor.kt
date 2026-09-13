@@ -17,7 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
@@ -76,7 +77,7 @@ fun CodeEditor(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .verticalScroll(verticalScrollState)
         ) {
             // Line numbers gutter
@@ -87,8 +88,15 @@ fun CodeEditor(
                 Box(
                     modifier = Modifier
                         .width(gutterWidth)
-                        .fillMaxHeight()
-                        .background(Color(0xFF14161A))
+                        .background(androidx.compose.ui.graphics.Color(0xFF14161A))
+                        .drawBehind {
+                            drawLine(
+                                color = EJsonDarkBorder,
+                                start = Offset(size.width, 0f),
+                                end = Offset(size.width, size.height),
+                                strokeWidth = 1.dp.toPx()
+                            )
+                        }
                         .padding(vertical = 12.dp, horizontal = 4.dp)
                 ) {
                     val gutterText = buildString {
@@ -112,19 +120,11 @@ fun CodeEditor(
                             .padding(end = 4.dp)
                     )
                 }
-
-                // Gutter divider
-                Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .fillMaxHeight()
-                        .background(EJsonDarkBorder)
-                )
             }
 
             // Editable Text Area
             val textModifier = Modifier
-                .fillMaxSize()
+                .weight(1f)
                 .padding(horizontal = 12.dp, vertical = 12.dp)
                 .testTag("json_code_input")
 

@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -138,6 +139,15 @@ fun EditorScreen(
     var showBedrockInspector by remember { mutableStateOf(false) }
     var showInsertSnippetDialog by remember { mutableStateOf(false) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
+
+    // Intercept back navigation (both top bar and system back)
+    BackHandler(enabled = true) {
+        if (isDirty && settings.confirmUnsavedChanges) {
+            showUnsavedDialog = true
+        } else {
+            onBack(isDirty)
+        }
+    }
 
     // Re-analyze when content changes
     LaunchedEffect(editorValue.text) {
@@ -899,26 +909,39 @@ fun EditorScreen(
         )
     }
 
-    // Unsaved Changes Confirmation Dialog
+    // Unsaved Changes Confirmation Dialog: Save / Discard / Cancel
     if (showUnsavedDialog) {
         AlertDialog(
             onDismissRequest = { showUnsavedDialog = false },
-            title = { Text("Unsaved Changes") },
-            text = { Text("You have unsaved changes in $fileName. Discard edits and leave?") },
+            title = { Text("Unsaved Changes", fontWeight = FontWeight.Bold) },
+            text = { Text("You have unsaved changes in $fileName. Would you like to save before leaving?") },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showUnsavedDialog = false
-                        onBack(false)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Discard & Exit")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            showUnsavedDialog = false
+                            onSave(editorValue.text)
+                            onBack(false)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = EJsonYellow, contentColor = Color.Black)
+                    ) {
+                        Text("Save & Exit", fontWeight = FontWeight.Bold)
+                    }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showUnsavedDialog = false }) {
-                    Text("Keep Editing")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = { showUnsavedDialog = false }) {
+                        Text("Cancel")
+                    }
+                    TextButton(
+                        onClick = {
+                            showUnsavedDialog = false
+                            onBack(false)
+                        }
+                    ) {
+                        Text("Discard", color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         )

@@ -1,0 +1,162 @@
+name: Android Release (APK & AAB)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release Tag / Version (e.g. v1.2.7)"
+        required: false
+        default: "v1.2.7"
+      is_draft:
+        description: "Create draft release"
+        type: boolean
+        required: false
+        default: false
+      is_prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: |
+          if [ ! -f "gradlew" ]; then
+            echo "gradlew wrapper not found in root, attempting generation"
+            if command -v gradle >/dev/null 2>&1; then
+              gradle wrapper
+            fi
+          fi
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+          else
+            echo "::error::gradlew script is missing from repository root"
+            exit 1
+          fi
+
+      - name: Setup Release Keystore
+        id: setup-keystore
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "Using custom release keystore from repository secrets..."
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${GITHUB_WORKSPACE}/my-upload-key.jks"
+            echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEYSTORE_PATH=${GITHUB_WORKSPACE}/my-upload-key.jks" >> $GITHUB_ENV
+          else
+            echo "No custom release keystore secret found. Generating standalone release keystore..."
+            keytool -genkeypair -v \
+              -keystore "${GITHUB_WORKSPACE}/my-upload-key.jks" \
+              -alias upload \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=EJson Bedrock Studio,O=AEN Team,C=US"
+            echo "STORE_PASSWORD=android" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=android" >> $GITHUB_ENV
+            echo "KEYSTORE_PATH=${GITHUB_WORKSPACE}/my-upload-key.jks" >> $GITHUB_ENV
+          fi
+
+      - name: Restore Debug Keystore (if needed)
+        run: |
+          if [ -f "debug.keystore.base64" ]; then
+            base64 -d debug.keystore.base64 > debug.keystore
+          fi
+
+      - name: Determine Version
+        id: versioning
+        run: |
+          if [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref_name }}" =~ ^v[0-9] ]]; then
+            VER="${{ github.ref_name }}"
+          elif [ -n "${{ inputs.tag_name }}" ]; then
+            VER="${{ inputs.tag_name }}"
+          else
+            VER="v1.2.7"
+          fi
+          echo "VERSION=$VER" >> $GITHUB_ENV
+          echo "version=$VER" >> $GITHUB_OUTPUT
+          echo "Selected release version: $VER"
+
+      - name: Build Release APK and AAB
+        run: ./gradlew assembleRelease bundleRelease --no-daemon
+
+      - name: Package Release Assets & Checksums
+        id: package-assets
+        run: |
+          mkdir -p release-assets
+          
+          # Copy Release APK
+          find app/build/outputs/apk/release -name "*.apk" -exec cp {} release-assets/EJson-${{ env.VERSION }}-release.apk \;
+          
+          # Copy Release Bundle (AAB)
+          find app/build/outputs/bundle/release -name "*.aab" -exec cp {} release-assets/EJson-${{ env.VERSION }}-release.aab \;
+
+          cd release-assets
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          ls -la
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: EJson-${{ env.VERSION }}-binaries
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: "EJson Bedrock Studio ${{ env.VERSION }}"
+          draft: ${{ inputs.is_draft || false }}
+          prerelease: ${{ inputs.is_prerelease || false }}
+          files: |
+            release-assets/*.apk
+            release-assets/*.aab
+            release-assets/SHA256SUMS.txt
+          body: |
+            ## EJson Bedrock Studio - Release ${{ env.VERSION }}
+            
+            Minecraft Bedrock JSON Creator, Syntax Validator & Offline Pack Tool suite.
+            
+            ### What's Inside:
+            - **Blank JSON Creator**: Clean `{}` starter template.
+            - **Bedrock Manifest Builder**: Offline UUID generation, 1.26.40.5 engine versioning, and module configuration.
+            - **Bedrock JSON Templates**: Comprehensive templates for Entities, Items, Blocks, Recipes, Loot Tables, Render Controllers, Animations, World Generation, and Biomes.
+            - **Bedrock Structures Hub**: Placement Feature Rules, Scatter configs, Jigsaw Template Pools, and `.mcstructure` binary inspector.
+            - **Offline Bedrock UUID Tool**: Header, Module, and Dependency UUID generator with one-tap copy.
+            - **JSON Syntax Engine & Colorizer**: Real-time syntax validation, bracket matching, formatting, and minify actions.
+            
+            ### Downloads & Verification:
+            - Download the `.apk` file to install directly on your Android device.
+            - Download the `.aab` file for Google Play console uploads.
+            - Verify integrity using `SHA256SUMS.txt`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
