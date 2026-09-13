@@ -1,0 +1,6 @@
+{
+  "name": "EJson",
+  "description": "Dedicated Minecraft Bedrock JSON editor and file manager for behavior packs, resource packs, and world generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
