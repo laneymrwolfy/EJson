@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.CheckCircle
@@ -26,7 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FindReplace
-import androidx.compose.material.icons.filled.FormatAlignLeft
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -376,7 +376,7 @@ fun EditorScreen(
                     ) {
                         DropdownMenuItem(
                             text = { Text("Format / Pretty Print") },
-                            leadingIcon = { Icon(Icons.Default.FormatAlignLeft, contentDescription = null) },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.FormatAlignLeft, contentDescription = null) },
                             onClick = {
                                 showMenu = false
                                 formatCode()
@@ -416,7 +416,7 @@ fun EditorScreen(
                         )
                         DropdownMenuItem(
                             text = { Text("Insert Snippet") },
-                            leadingIcon = { Icon(Icons.Default.FormatAlignLeft, contentDescription = null) },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.FormatAlignLeft, contentDescription = null) },
                             onClick = {
                                 showMenu = false
                                 showInsertSnippetDialog = true
